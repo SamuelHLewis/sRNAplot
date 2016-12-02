@@ -13,7 +13,7 @@ Requires:
 ## Usage
 Basic usage is:
 ```bash
-python3 sRNAplot.py -s samplename -i input.bam
+sRNAplot.py -s samplename -i input.bam
 ```
 sRNAplot accepts the following additional arguments (all of which have defaults already set):
 
