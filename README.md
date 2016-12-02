@@ -25,6 +25,8 @@ sRNAplot accepts the following additional arguments (all of which have defaults 
 
 --pingpong (plot Ping-Pong overlap signature)
 
+--distribution (plot sRNA length distribution)
+
 --unique (plot unique reads only i.e. collapse identical reads)
 
 -h display help message
