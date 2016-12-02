@@ -10,7 +10,7 @@ Requires:
 
 [signature.py](http://52.203.54.162/GEDlab/?page_id=730) by Christophe Antoniewski (must be installed as ~/bin/signature.py)
 
-# Usage
+## Usage
 Basic usage is:
 ```bash
 python3 sRNAplot.py -s samplename -i input.bam
