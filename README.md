@@ -8,7 +8,7 @@ Requires:
 
 [WebLogo 3](http://weblogo.berkeley.edu/)
 
-[signature.py](http://52.203.54.162/GEDlab/?page_id=730) by Christophe Antoniewski (must be installed as ~/bin/signature.py)
+signature.py by [Christophe Antoniewski](http://52.203.54.162/GEDlab/) - to install, simply copy the `signature.py` file (above) into your `~/bin/` directory (**NOTE**: it **must** be installed in this directory).
 
 ## Usage
 Basic usage is:
@@ -29,4 +29,4 @@ sRNAplot accepts the following additional arguments (all of which have defaults 
 
 --unique (plot unique reads only i.e. collapse identical reads)
 
--h display help message
+-h (display help message)
