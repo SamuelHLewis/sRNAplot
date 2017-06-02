@@ -6,7 +6,7 @@ Written in python3.
 
 Requires:
 
-[WebLogo 3](http://weblogo.berkeley.edu/)
+[WebLogo 3](http://weblogo.threeplusone.com/manual.html#download) - **NOTE**: please install weblogo rather than seqlogo
 
 signature.py by [Christophe Antoniewski](http://52.203.54.162/GEDlab/) - to install, simply copy the `signature.py` file (above) into your `~/bin/` directory (**NOTE**: it **must** be installed in this directory).
 
