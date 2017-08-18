@@ -325,7 +325,10 @@ def bam_5prime_stranded(file,minlength=0,maxlength=1000,unique=False):
 		cigar = linesplit[5]
 		if cigar.endswith('M'):
 			seq = linesplit[9]
-			count = int(linesplit[0].split('-')[1])
+			if unique==True:
+				count = 1
+			else:
+				count = int(linesplit[0].split('-')[1])
 			# this is where the length filtering happens
 			if minlength <= len(seq) <= maxlength:
 				# this splits up sense and antisense reads
