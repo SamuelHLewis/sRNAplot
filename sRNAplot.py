@@ -335,7 +335,6 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 
 	# Set a buffer around the edge
 	plt.xlim([min(tick_pos)-bar_width, max(tick_pos)+bar_width])
-
 	print('Plot created')
 	
 	# output plot to file
