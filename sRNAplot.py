@@ -339,7 +339,7 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 	print('Plot created')
 	
 	# output plot to file
-	outname = samplename + '.pdf'
+	outname = samplename + '_unstranded.pdf'
 	outfile = PdfPages(outname)
 	plt.savefig(outfile, format='pdf')
 	outfile.close()
