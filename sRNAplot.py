@@ -23,6 +23,7 @@ SeqLogo=False
 PingPong=False
 Distribution=False
 Unique=False
+Unstranded=False
 MinLength=17
 MaxLength=35
 
@@ -38,6 +39,7 @@ parser.add_argument('--seqlogo', help='plot seqlogo', action='store_true')
 parser.add_argument('--pingpong', help='plot Ping-Pong overlap signature', action='store_true')
 parser.add_argument('--distribution', help='plot sRNA length distribution', action='store_true')
 parser.add_argument('--unique', help='plot unique reads only (i.e. collapse identical reads)', action='store_true')
+parser.add_argument('--unstranded', help='ignore strand information when plotting distribution', action='store_true')
 args = parser.parse_args()
 # sample name parsing
 Sample = args.sample
@@ -99,20 +101,28 @@ if args.distribution:
 	print('Plotting sRNA length distribution')
 else:
 	print('Not plotting sRNA length distribution')
-# distribution option parsing
+# read collapsing option parsing
 if args.unique:
 	Unique=True
 	print('Collapsing reads to unique reads only')
 else:
 	print('Not collapsing reads')
+# stranded option parsing
+if args.unstranded:
+	Unstranded=True
+	print('Ignoring strand information')
+else:
+	print('Using strand information')
 
 ######################################################################################
 # function to parse a bam file, returns a dict of 5' base counts for each seq length #
 ######################################################################################
 def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 	# empty dicts for read sequences and read counts
-	seqs = []
-	counts = []
+	sense_seqs = []
+	sense_counts = []
+	antisense_seqs = []
+	antisense_counts = []
 	# read in bamfile
 	bamfile = pysam.AlignmentFile(file,"rb")
 
@@ -125,15 +135,30 @@ def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 		cigar = linesplit[5]
 		if cigar.endswith('M'):
 			seq = linesplit[9]
-			count = int(linesplit[0].split('-')[1])
+			if unique==True:
+				count = 1
+			else:
+				count = int(linesplit[0].split('-')[1])
 			# this is where the length filtering happens
 			if minlength <= len(seq) <= maxlength:
-				seqs.append(seq)
-				counts.append(count)
+				# this splits up sense and antisense reads
+				if linesplit[1] == '16':
+					# convert seq string to Biopython Seq object
+					tempseq=Seq(seq)
+					# set reverse-complement of Seq object as string
+					tempseqrevcomp = tempseq.reverse_complement()
+					antisense_seqs.append(tempseqrevcomp)
+					antisense_counts.append(count)
+				else:
+					sense_seqs.append(seq)
+					sense_counts.append(count)
 
 	# go through all of the sequences, creating a list of all read lengths
 	lengths = []
-	for i in seqs:
+	for i in sense_seqs:
+		if len(i) not in lengths:
+			lengths.append(len(i))
+	for i in antisense_seqs:
 		if len(i) not in lengths:
 			lengths.append(len(i))
 	# sort the lengths list in ascending order
@@ -145,21 +170,40 @@ def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 	G = []
 	T = []
 	N = []
-	# go through the lengths, looking at the first base of each read of that length, and totalling them up
+	# go through the lengths, looking at the first base of each sense read of that length, and totalling them up
 	for readlength in lengths:
 		Acount=0
 		Ccount=0
 		Gcount=0
 		Tcount=0
 		Ncount=0
-		for i in range(len(seqs)):
-			read = seqs[i]
+		for i in range(len(sense_seqs)):
+			read = sense_seqs[i]
 			if len(read) == readlength:
 				firstbase = read[0]
 				if unique==True:
 					count = 1
 				elif unique==False:
-					count = counts[i]
+					count = sense_counts[i]
+				if firstbase == 'A':
+					Acount = Acount + count
+				elif firstbase == 'C':
+					Ccount = Ccount + count
+				elif firstbase == 'G':
+					Gcount = Gcount + count
+				elif firstbase == 'T':
+					Tcount = Tcount + count
+				elif firstbase == 'N':
+					Ncount = Ncount + count
+		# go through the lengths, looking at the first base of each antisense read of that length, and totalling them up
+		for i in range(len(antisense_seqs)):
+			read = antisense_seqs[i]
+			if len(read) == readlength:
+				firstbase = read[0]
+				if unique==True:
+					count = 1
+				elif unique==False:
+					count = antisense_counts[i]
 				if firstbase == 'A':
 					Acount = Acount + count
 				elif firstbase == 'C':
@@ -176,10 +220,8 @@ def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 		T.append(Tcount)
 		N.append(Ncount)
 		
-	totalcounts = sum(counts)
-	totalbasecounts = sum(A) + sum(C) + sum(G) + sum(T) + sum(N)
 	print('Bases counted')
-	
+
 	# format the dataframe
 	formatted = {}
 	formatted['Length'] = lengths
@@ -191,6 +233,7 @@ def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 	basecounts = pd.DataFrame(formatted,columns=['Length','A','C','G','T','N'])
 	return(basecounts)
 	
+	
 #########################################################
 # function to make a stacked barplot, returns a barplot #
 #########################################################
@@ -201,7 +244,7 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 	bar_width = 0.75
 
 	# positions of the left bar-boundaries
-	bar_l = [i+1 for i in range(len(dataframe['A']))]
+	bar_l = [i+1 for i in range(len(dataframe['Length']))]
 
 	# positions of the x-axis ticks (center of the bars as bar labels)
 	tick_pos = [i+(bar_width/2) for i in bar_l]
@@ -221,7 +264,7 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 
 	# Create a bar plot, in position bar_1
 	ax1.bar(bar_l,
-			# using the C data
+			# using the A data
 			dataframe['A'],
 			# set the width
 			width=bar_width,
@@ -287,7 +330,7 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 	# Set the label, legends and title
 	ax1.set_ylabel(ylabel)
 	ax1.set_xlabel(xlabel)
-	plt.legend(loc='upper right')
+	#plt.legend(loc='upper right')
 	plt.title(samplename)
 
 	# Set a buffer around the edge
@@ -598,7 +641,7 @@ def stacked_barplot_stranded(dataframe,samplename='Plot',xlabel='xlabel',ylabel=
 			# with alpha 1
 			alpha=1,
 			# with color
-			color='#8B0000')	
+			color='#8B0000')		
 	# set the x ticks with names
 	plt.xticks(tick_pos, dataframe[xlabel])
 	# Set the label, legends and title
@@ -778,9 +821,15 @@ if PingPong is True:
 	print('Plotted Ping-Pong signature (sample='+Sample+', input file='+InFile+')')
 
 if Distribution is True:
-	print('Plotting sRNA length distribution (sample='+Sample+', input file='+InFile+')')
-	fiveprime_host = bam_5prime_stranded(file=InFile,minlength=MinLength,maxlength=MaxLength,unique=Unique)
-	stacked_barplot_stranded(dataframe=fiveprime_host,samplename=Sample+'_'+InFile.strip('.bam')+'_5prime',xlabel='Length',ylabel='Count')
-	print('Plotted sRNA length distribution (sample='+Sample+', input file='+InFile+')')
+	if Unstranded==False:
+		print('Plotting sRNA length distribution (sample='+Sample+', input file='+InFile+')')
+		fiveprime_host = bam_5prime_stranded(file=InFile,minlength=MinLength,maxlength=MaxLength,unique=Unique)
+		stacked_barplot_stranded(dataframe=fiveprime_host,samplename=Sample+'_'+InFile.strip('.bam')+'_5prime',xlabel='Length',ylabel='Count')
+		print('Plotted sRNA length distribution (sample='+Sample+', input file='+InFile+')')
+	if Unstranded==True:
+		print('Plotting sRNA length distribution (sample='+Sample+', input file='+InFile+')')
+		fiveprime_host = bam_5prime(file=InFile,minlength=MinLength,maxlength=MaxLength,unique=Unique)
+		stacked_barplot(dataframe=fiveprime_host,samplename=Sample+'_'+InFile.strip('.bam')+'_5prime',xlabel='Length',ylabel='Count')
+		print('Plotted sRNA length distribution (sample='+Sample+', input file='+InFile+')')
 
 print("Plotting complete")
