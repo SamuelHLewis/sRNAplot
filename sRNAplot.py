@@ -239,7 +239,7 @@ def bam_5prime(file,minlength=0,maxlength=1000,unique=False):
 #########################################################
 def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel'):
 	# Create the general blog and the "subplots" i.e. the bars
-	f, ax1 = plt.subplots(1, figsize=(10,5))
+	f, ax1 = plt.subplots(1, figsize=(6.597222,3.298611))
 	# Set the bar width
 	bar_width = 0.75
 
@@ -331,11 +331,19 @@ def stacked_barplot(dataframe,samplename='Plot',xlabel='xlabel',ylabel='ylabel')
 	ax1.set_ylabel(ylabel)
 	ax1.set_xlabel(xlabel)
 	#plt.legend(loc='upper right')
-	plt.title(samplename)
+	#plt.title(samplename)
 
 	# Set a buffer around the edge
 	plt.xlim([min(tick_pos)-bar_width, max(tick_pos)+bar_width])
 	print('Plot created')
+
+	# remove top and right spines
+	ax1.spines['right'].set_visible(False)
+	ax1.yaxis.set_ticks_position('left')
+	ax1.spines['top'].set_visible(False)
+	ax1.xaxis.set_ticks_position('bottom')
+	# remove tick marks from x axis while keeping labels
+	ax1.tick_params(axis='x',which='both',length=0)
 	
 	# output plot to file
 	outname = samplename + '_unstranded.pdf'
