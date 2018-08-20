@@ -819,24 +819,24 @@ def overlap_plot(outname,bamfile,minlength,maxlength,minoverlap,maxoverlap):
 ##################
 if SeqLogo is True:
 	print('Plotting seqlogo (sample='+Sample+', input file='+InFile+')')
-	bam_seqlogo(file=InFile,outfilename=Sample+'_'+InFile.strip('.bam'),minlength=MinLength,maxlength=MaxLength,unique=Unique)
+	bam_seqlogo(file=InFile,outfilename=InFile.strip('.bam')+'_'+Sample,minlength=MinLength,maxlength=MaxLength,unique=Unique)
 	print('Plotted seqlogo (sample=' + Sample + ', input file=' + InFile+')')
 
 if PingPong is True:
 	print('Plotting Ping-Pong signature (sample='+Sample+', input file='+InFile+')')
-	overlap_plot(outname=Sample+'_'+InFile.strip('.bam')+'_PingPong.pdf',bamfile=InFile,minlength=MinLength,maxlength=MaxLength,minoverlap=1,maxoverlap=30)
+	overlap_plot(outname=InFile.strip('.bam')+'_'+Sample+'_PingPong.pdf',bamfile=InFile,minlength=MinLength,maxlength=MaxLength,minoverlap=1,maxoverlap=30)
 	print('Plotted Ping-Pong signature (sample='+Sample+', input file='+InFile+')')
 
 if Distribution is True:
 	if Unstranded==False:
 		print('Plotting sRNA length distribution (sample='+Sample+', input file='+InFile+')')
 		fiveprime_host = bam_5prime_stranded(file=InFile,minlength=MinLength,maxlength=MaxLength,unique=Unique)
-		stacked_barplot_stranded(dataframe=fiveprime_host,samplename=Sample+'_'+InFile.strip('.bam')+'_5prime',xlabel='Length',ylabel='Count')
+		stacked_barplot_stranded(dataframe=fiveprime_host,samplename=InFile.strip('.bam')+'_'+Sample+'_5prime',xlabel='Length',ylabel='Count')
 		print('Plotted sRNA length distribution (sample='+Sample+', input file='+InFile+')')
 	if Unstranded==True:
 		print('Plotting sRNA length distribution (sample='+Sample+', input file='+InFile+')')
 		fiveprime_host = bam_5prime(file=InFile,minlength=MinLength,maxlength=MaxLength,unique=Unique)
-		stacked_barplot(dataframe=fiveprime_host,samplename=Sample+'_'+InFile.strip('.bam')+'_5prime',xlabel='Length',ylabel='Count')
+		stacked_barplot(dataframe=fiveprime_host,samplename=InFile.strip('.bam')+'_'+Sample+'_5prime',xlabel='Length',ylabel='Count')
 		print('Plotted sRNA length distribution (sample='+Sample+', input file='+InFile+')')
 
 print("Plotting complete")
